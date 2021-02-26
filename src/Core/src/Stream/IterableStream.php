@@ -48,7 +48,15 @@ final class IterableStream implements ReadOnceResultStream, RequestStream
 
     public function getIterator(): \Traversable
     {
-        yield from $this->content;
+        try {
+            yield from $this->content;
+        } catch (\Throwable $e) {
+            if (!file_exists('/tmp/log/async-aws.log')) {
+                touch('/tmp/log/async-aws.log');
+            }
+            file_put_contents('/tmp/log/async-aws.log', $this->content . "\n\n", FILE_APPEND);
+            throw $e;
+        }
     }
 
     public function hash(string $algo = 'sha256', bool $raw = false): string
